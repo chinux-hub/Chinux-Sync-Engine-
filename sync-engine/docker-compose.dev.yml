@@ -1,0 +1,25 @@
+version: "3.8"
+# Local dev only — spins up all three DB backends so you can test each
+# adapter. In production you'd run exactly one of these.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: syncdb
+      POSTGRES_PASSWORD: syncdb
+    ports: ["5432:5432"]
+    volumes:
+      - ./server/schema/postgres.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: syncdb
+      MYSQL_ROOT_PASSWORD: syncdb
+    ports: ["3306:3306"]
+    volumes:
+      - ./server/schema/mysql.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mongodb:
+    image: mongo:7
+    ports: ["27017:27017"]
