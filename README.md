@@ -1,8 +1,8 @@
 # Offline-first Multi-Device Sync Engine
 
 Self-hosted, no BaaS dependency. One Rust sync core shared by Android, iOS,
-and Desktop; a Node/TypeScript server with pluggable Postgres, MySQL, or
-MongoDB adapters.
+and Desktop; an IndexedDB-backed TypeScript client for Web apps; and a Node/TypeScript
+server with pluggable Postgres, MySQL, or MongoDB adapters.
 
 Read `docs/ARCHITECTURE.md` first — it explains the HLC clock, field-level
 conflict resolution, and change-log design that everything else depends on.
@@ -18,6 +18,7 @@ clients/
   android/    Kotlin wrapper (SyncEngine.kt) over generated UniFFI bindings.
   ios/        Swift wrapper (SyncEngine.swift) over generated UniFFI bindings.
   desktop/    Tauri commands (Rust) + TS wrapper for a webview frontend.
+  web/        TypeScript client (SyncEngine) with IndexedDB & WebSocket for Web/PWAs.
 docker-compose.dev.yml   Spins up Postgres/MySQL/MongoDB for local testing.
 ```
 
@@ -63,7 +64,7 @@ xcodebuild -create-xcframework \
 ```
 
 ## Using it in app code
-All three platform wrappers expose the same shape:
+All four platform wrappers (Android, iOS, Desktop, Web) expose the same shape:
 ```
 upsert(table, rowId, fields, isInsert)
 delete(table, rowId)
@@ -81,7 +82,8 @@ Built and complete:
 - Change log + tombstones + cursor-based delta pull
 - All three DB adapters (Postgres, MySQL, MongoDB) implementing one interface
 - Rust core with SQLite local storage, outbox queue, push/pull
-- Kotlin, Swift, and TS/Tauri wrappers with matching APIs
+- Web client package (`@chinux/sync-engine-web`) with IndexedDB storage and live WebSockets
+- Kotlin, Swift, TS/Tauri, and Web wrappers with matching APIs
 
 Before shipping, you'll still want to add:
 - Your actual auth/login flow issuing the JWTs `authMiddleware` expects

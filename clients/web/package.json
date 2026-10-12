@@ -1,0 +1,28 @@
+{
+  "name": "@chinux/sync-engine-web",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Offline-first sync engine client for web applications (IndexedDB + HLC + Live WebSocket)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "node --experimental-strip-types test/verify.ts",
+    "build": "tsc -p .",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "sync",
+    "offline-first",
+    "indexeddb",
+    "crdt",
+    "hlc",
+    "websocket",
+    "pwa"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

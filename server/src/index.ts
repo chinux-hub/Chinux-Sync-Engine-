@@ -29,6 +29,17 @@ async function main() {
   const app = express();
   app.use(express.json({ limit: "5mb" }));
 
+  // Enable CORS for web apps
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN ?? "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   const db = buildAdapter();
   await db.connect();
   console.log(`Connected to DB backend: ${process.env.DB_BACKEND ?? "postgres"}`);

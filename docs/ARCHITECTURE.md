@@ -11,36 +11,36 @@ As of this revision, five previously-identified gaps have been closed:
 5. **Background sync scheduling** — Android uses WorkManager, iOS uses BGTaskScheduler, both respecting OS-imposed constraints rather than only syncing in the foreground.
 
 ## Goals
-- Offline-first: clients read/write local SQLite instantly, sync opportunistically.
-- Multi-platform: one sync algorithm (Rust core), thin native wrappers for Android, iOS, Desktop.
+- Offline-first: clients read/write local SQLite or IndexedDB instantly, sync opportunistically.
+- Multi-platform: one sync algorithm across Android, iOS, Desktop, and Web (browser/PWA).
 - Server DB agnostic: Postgres, MySQL, MongoDB via a common adapter interface.
 - No vendor lock-in (no Supabase / BaaS dependency).
 
 ## High-level flow
 
 ```
- ┌─────────────┐        ┌─────────────┐        ┌──────────────┐
- │  Android     │        │  iOS         │        │  Desktop     │
- │  (Kotlin)    │        │  (Swift)     │        │  (Tauri/Rust)│
- │  ┌────────┐  │        │  ┌────────┐  │        │  ┌────────┐  │
- │  │ Rust    │  │        │  │ Rust    │  │        │  │ Rust    │  │
- │  │ core .so│  │        │  │ core .a │  │        │  │ core    │  │
- │  │ (JNI)   │  │        │  │ (FFI)   │  │        │  │ (native)│  │
- │  └───┬────┘  │        │  └───┬────┘  │        │  └───┬────┘  │
- │  SQLite     │        │  SQLite      │        │  SQLite      │
- └──────┼──────┘        └──────┼───────┘        └──────┼───────┘
-        │  HTTPS + WebSocket (delta sync protocol)     │
-        └───────────────────────┬───────────────────────┘
-                                 │
-                        ┌────────▼─────────┐
-                        │   Sync Server     │
-                        │  (Node/TS)        │
-                        │  DB Adapter layer │
-                        └────────┬──────────┘
-                     ┌───────────┼───────────┐
-                 ┌────▼───┐  ┌────▼───┐  ┌────▼────┐
-                 │Postgres│  │ MySQL  │  │ MongoDB │
-                 └────────┘  └────────┘  └─────────┘
+ ┌─────────────┐        ┌─────────────┐        ┌──────────────┐        ┌──────────────┐
+ │  Android    │        │  iOS        │        │  Desktop     │        │  Web / PWA   │
+ │  (Kotlin)   │        │  (Swift)    │        │  (Tauri/Rust)│        │  (TS / Web)  │
+ │  ┌────────┐ │        │  ┌────────┐ │        │  ┌────────┐  │        │  ┌─────────┐ │
+ │  │ Rust   │ │        │  │ Rust   │ │        │  │ Rust   │  │        │  │ HLC/Sync│ │
+ │  │ core.so│ │        │  │ core.a │ │        │  │ core   │  │        │  │ Engine  │ │
+ │  │ (JNI)  │ │        │  │ (FFI)  │ │        │  │(native)│  │        │  │ (TS)    │ │
+ │  └───┬────┘ │        │  └───┬────┘ │        │  └───┬────┘  │        │  └───┬─────┘ │
+ │  SQLite     │        │  SQLite     │        │  SQLite      │        │  IndexedDB   │
+ └──────┼──────┘        └──────┼──────┘        └──────┼───────┘        └──────┼───────┘
+        │  HTTPS + WebSocket (delta sync protocol)                            │
+        └──────────────────────────────────────┬──────────────────────────────┘
+                                               │
+                                      ┌────────▼─────────┐
+                                      │   Sync Server     │
+                                      │  (Node/TS)        │
+                                      │  DB Adapter layer │
+                                      └────────┬──────────┘
+                                   ┌───────────┼───────────┐
+                               ┌────▼───┐  ┌────▼───┐  ┌────▼────┐
+                               │Postgres│  │ MySQL  │  │ MongoDB │
+                               └────────┘  └────────┘  └─────────┘
 ```
 
 ## Core concepts
